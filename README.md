@@ -1,59 +1,90 @@
 # Batch-Renamer
-File &amp; Folder Name Accent Remover / Batch Renamer
-# File & Folder Name Accent Remover / Batch Renamer
+File & Folder Name Accent Remover / Batch Renamer
 
-A lightweight, portable Python application for batch renaming files and folders.
+A lightweight and portable Windows application for batch renaming files and folders.
 
-The program automatically removes accented characters from file and folder names, replaces spaces with underscores, applies custom character replacements, and provides a live preview before any changes are made.
+The program automatically removes accented characters from filenames, replaces spaces with underscores, supports custom character replacements, deletes characters by position, and provides a live preview before any changes are made.
 
-The graphical user interface is built with **Python** and **Tkinter**, and the application has **no external dependencies**.
+The application is written in **Python** using the standard **Tkinter** GUI library and can be distributed as a single portable executable with no installation required.
 
 ---
 
-## Features
+# Features
 
 * Batch rename files and folders.
 * Remove accented characters (á, é, í, ó, ö, ő, ú, ü, ű → a, e, i, o, o, o, u, u, u).
 * Replace spaces with underscores (`_`).
-* Custom character and text replacements (for example `&` → `es`).
+* Apply custom character and text replacements.
 * Delete characters by position.
-* Preview every new filename before renaming.
+* Live preview before renaming.
 * Rename confirmation dialog.
 * Undo the last batch rename operation.
 * Hungarian and English user interface.
 * Supports both files and folders.
-* No external libraries required.
+* No external dependencies.
 
 ---
 
-## Selection
+# File Selection
 
-The file list supports standard Windows multi-selection.
+The file list supports familiar Windows selection methods.
 
-### Mouse
+## Mouse
 
 * Left Click – Select a single item.
 * **Ctrl + Left Click** – Add or remove individual items from the selection.
 * **Shift + Left Click** – Select a continuous range of items.
-* Right Click – Keeps the current selection and can be used for context menu operations.
+* Right Click – Preserves the current selection and can be used for context menu operations.
 
-### Keyboard
+## Keyboard
 
 * **Ctrl + A** – Select all items.
 * **Esc** – Clear the current selection.
 
 ---
 
-## Requirements
+# System Requirements
 
-* Windows
-* Python 3.10 or newer
+## Operating System
 
-No additional Python packages are required to run the source code.
+* Windows 10 (64-bit)
+* Windows 11 (64-bit)
+
+## Hardware
+
+Minimum:
+
+* 1 GHz 64-bit processor
+* 2 GB RAM
+* 30 MB free disk space
+* 1024 × 768 display
+
+Recommended:
+
+* Dual-core processor or faster
+* 4 GB RAM or more
+* Full HD (1920 × 1080) display
 
 ---
 
-## Running from Source
+# Portable Executable
+
+The released executable is a **64-bit portable application**.
+
+* No installation required.
+* No administrator privileges required.
+* Python does not need to be installed.
+* Simply download and run the executable.
+
+---
+
+# Running from Source
+
+Requirements:
+
+* Python 3.10 or newer
+
+Run:
 
 ```bash
 python atnevezo.py
@@ -61,25 +92,32 @@ python atnevezo.py
 
 ---
 
-## Building a Portable EXE
+# Building the Executable
 
-The application can be compiled into a single portable executable using PyInstaller.
+Build a portable executable using PyInstaller:
 
 ```bash
-python -m PyInstaller --onefile --windowed --name Atnevezo atnevezo.py
+python -m PyInstaller --onefile --windowed --clean --name Atnevezo atnevezo.py
 ```
 
-The generated executable will be located in the `dist` folder.
+The executable will be generated in the **dist** folder.
 
 ---
 
-## License
+# License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
 
 See the **LICENSE** file for details.
 
 ---
+
+# Author
+
+Created and designed by **Szabiz**.
+
+Developed with the assistance of **OpenAI ChatGPT**.
+
 
 ## Author
 

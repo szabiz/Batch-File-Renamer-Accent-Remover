@@ -1,45 +1,85 @@
-# Batch-Renamer
-File & Folder Name Accent Remover / Batch Renamer
+# Atnevezo
+
+### Batch File & Folder Renamer for Windows
+
+<p align="center">
+
+![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue)
+![Architecture](https://img.shields.io/badge/Architecture-64--bit-blue)
+![Python](https://img.shields.io/badge/Python-3.10+-yellow)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+</p>
 
 A lightweight and portable Windows application for batch renaming files and folders.
 
-The program automatically removes accented characters from filenames, replaces spaces with underscores, supports custom character replacements, deletes characters by position, and provides a live preview before any changes are made.
+The program removes accented characters, replaces spaces, performs custom text replacements, previews every change before execution, and safely renames multiple files or folders in a single operation.
 
-The application is written in **Python** using the standard **Tkinter** GUI library and can be distributed as a single portable executable with no installation required.
+No installation is required when using the released executable.
+
+---
+
+# Main Window
+
+<p align="center">
+    <img src="Atnevezo1.jpg" width="950">
+</p>
+
+The main interface provides all renaming options in one place. You can load files or folders, configure rename rules, preview the results, and execute batch operations safely.
 
 ---
 
 # Features
 
-* Batch rename files and folders.
-* Remove accented characters (á, é, í, ó, ö, ő, ú, ü, ű → a, e, i, o, o, o, u, u, u).
-* Replace spaces with underscores (`_`).
-* Apply custom character and text replacements.
-* Delete characters by position.
-* Live preview before renaming.
-* Rename confirmation dialog.
-* Undo the last batch rename operation.
-* Hungarian and English user interface.
-* Supports both files and folders.
-* No external dependencies.
+- Batch rename files and folders
+- Remove accented characters
+- Replace spaces with underscores (`_`)
+- Custom character and text replacements
+- Delete characters by position
+- Live preview before renaming
+- Undo the last batch rename operation
+- Hungarian and English user interface
+- Supports both files and folders
+- No external dependencies
+- Portable executable
 
 ---
 
-# File Selection
+# Selection
 
 The file list supports familiar Windows selection methods.
 
-## Mouse
+### Mouse
 
-* Left Click – Select a single item.
-* **Ctrl + Left Click** – Add or remove individual items from the selection.
-* **Shift + Left Click** – Select a continuous range of items.
-* Right Click – Preserves the current selection and can be used for context menu operations.
+- Left Click – Select a single item
+- **Ctrl + Left Click** – Add or remove individual items from the selection
+- **Shift + Left Click** – Select a continuous range of items
+- Right Click – Preserves the current selection and opens the context menu
 
-## Keyboard
+### Keyboard
 
-* **Ctrl + A** – Select all items.
-* **Esc** – Clear the current selection.
+- **Ctrl + A** – Select all items
+- **Esc** – Clear the current selection
+
+---
+
+# Preview
+
+<p align="center">
+    <img src="Atnevezo2.jpg" width="900">
+</p>
+
+Preview all filename changes before renaming. This helps prevent mistakes and gives full control over the final result.
+
+---
+
+# Batch Rename
+
+<p align="center">
+    <img src="Atnevezo3.jpg" width="900">
+</p>
+
+Rename multiple files and folders quickly and safely with a single click.
 
 ---
 
@@ -47,44 +87,35 @@ The file list supports familiar Windows selection methods.
 
 ## Operating System
 
-* Windows 10 (64-bit)
-* Windows 11 (64-bit)
+- Windows 10 (64-bit)
+- Windows 11 (64-bit)
 
-## Hardware
+## Minimum Hardware
 
-Minimum:
+- 1 GHz 64-bit processor
+- 2 GB RAM
+- 30 MB free disk space
 
-* 1 GHz 64-bit processor
-* 2 GB RAM
-* 30 MB free disk space
-* 1024 × 768 display
+## Recommended
 
-Recommended:
-
-* Dual-core processor or faster
-* 4 GB RAM or more
-* Full HD (1920 × 1080) display
+- Dual-core processor
+- 4 GB RAM or more
+- Full HD (1920×1080) display
 
 ---
 
 # Portable Executable
 
-The released executable is a **64-bit portable application**.
+The released executable is completely portable.
 
-* No installation required.
-* No administrator privileges required.
-* Python does not need to be installed.
-* Simply download and run the executable.
+- No installation required
+- No administrator privileges required
+- Python is not required
+- Single executable file
 
 ---
 
 # Running from Source
-
-Requirements:
-
-* Python 3.10 or newer
-
-Run:
 
 ```bash
 python atnevezo.py
@@ -94,13 +125,11 @@ python atnevezo.py
 
 # Building the Executable
 
-Build a portable executable using PyInstaller:
-
 ```bash
 python -m PyInstaller --onefile --windowed --clean --name Atnevezo atnevezo.py
 ```
 
-The executable will be generated in the **dist** folder.
+The executable will be created inside the `dist` folder.
 
 ---
 
@@ -113,13 +142,6 @@ See the **LICENSE** file for details.
 ---
 
 # Author
-
-Created and designed by **Szabiz**.
-
-Developed with the assistance of **OpenAI ChatGPT**.
-
-
-## Author
 
 Created and designed by **Szabiz**.
 

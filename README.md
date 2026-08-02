@@ -143,6 +143,6 @@ See the **LICENSE** file for details.
 
 # Author
 
-Created and designed by **Szabiz**.
+Created and designed by **szabiz**.
 
 This project was developed with the assistance of AI tools, including **Claude** and **OpenAI ChatGPT**.

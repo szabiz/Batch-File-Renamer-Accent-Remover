@@ -145,4 +145,4 @@ See the **LICENSE** file for details.
 
 Created and designed by **Szabiz**.
 
-Developed with the assistance of **OpenAI ChatGPT**.
+Developed with the assistance of **claude.ai, OpenAI ChatGPT**.

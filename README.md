@@ -1,6 +1,6 @@
-# Atnevezo
+# Batch File Renamer & Accent Remover
 
-### Batch File & Folder Renamer for Windows
+### Fájlok Csoportos átnevezése és ékezettelenítése
 
 <p align="center">
 

@@ -42,6 +42,9 @@ The main interface provides all renaming options in one place. You can load file
 - Supports both files and folders
 - No external dependencies
 - Portable executable
+### New in v1.5
+- Added support for prefix/suffix text insertion when position field is empty.
+- UI adjustments for easier file handling.
 
 ---
 

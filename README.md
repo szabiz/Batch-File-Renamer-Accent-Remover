@@ -148,4 +148,8 @@ See the **LICENSE** file for details.
 
 Created and designed by **szabiz**.
 
+## Credits & Dependencies
+
+- **Python / Tkinter**: [PSF License](https://docs.python.org/3/license.html)
+
 This project was developed with the assistance of AI tools, including **Claude** and **OpenAI ChatGPT**.

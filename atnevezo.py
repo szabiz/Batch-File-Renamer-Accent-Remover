@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Fájl- és mappanév ékezetmentesítő és kötegelt átnevező program
-================================================================
 File and folder name accent-remover and batch renaming tool
 ================================================================
-- Fájlok és/vagy mappák importálása (fájlválasztó ablakkal)
-- Az ékezetes karakterek automatikus eltávolítása (á->a, ő->o, stb.)
-- A szóközök alulvonásra (_) cserélése
-- Egyéni karaktercserék (pl. '&' -> 'es')
-- Karakterek törlése és BESZÚRÁSA pozíció szerint
-- Előnézet az új nevekről az átnevezés előtt
-- Kötegelt (batch) átnevezés egy gombnyomással
-- Visszaállítás (undo) az utoljára végrehajtott átnevezés(ek)re
-- Magyar / angol nyelv választása
+- Import files/folders
+- Optional accent removal & space replacement with exception list
+- Custom replacement options
+- Character position delete & insert
+- Auto-numbering support
+- Revert / Undo functionality
+- English / Hungarian bilingual UI
 """
 
 import os
@@ -24,7 +20,7 @@ from tkinter import ttk, filedialog, messagebox
 
 
 # ======================================================================
-# Fordítások / Translations
+# Translations
 # ======================================================================
 TRANSLATIONS = {
     "title": {
@@ -47,6 +43,7 @@ TRANSLATIONS = {
     },
 
     "menu_settings": {"hu": "Beállítások", "en": "Settings"},
+    "menu_accent_removal": {"hu": "Ékezetmentesítés...", "en": "Accent removal..."},
     "menu_custom_replacements": {"hu": "Egyéni karaktercserék...", "en": "Custom character replacements..."},
     "menu_position_delete": {
         "hu": "Karakterek törlése pozíció szerint...",
@@ -56,6 +53,10 @@ TRANSLATIONS = {
         "hu": "Karakterek beszúrása pozíció szerint...",
         "en": "Insert characters by position...",
     },
+    "menu_autonumber": {
+        "hu": "Automatikus számozás...",
+        "en": "Auto-numbering...",
+    },
     "menu_language": {"hu": "Nyelv", "en": "Language"},
     "lang_hu": {"hu": "Magyar", "en": "Hungarian"},
     "lang_en": {"hu": "Angol", "en": "English"},
@@ -63,12 +64,23 @@ TRANSLATIONS = {
     "menu_help_item": {"hu": "Súgó", "en": "Help"},
     "menu_about": {"hu": "Névjegy", "en": "About"},
 
+    "accent_title": {"hu": "Ékezetmentesítés és szóközkezelés", "en": "Accent & Space Removal"},
+    "accent_desc": {
+        "hu": "A funkció eltávolítja az ékezeteket és a szóközöket '_' jelre cseréli.\n"
+              "Ha vannak olyan karakterek vagy szóköz, amiket meg szeretnél tartani,\n"
+              "írd be őket az alábbi mezőbe (kivételek).",
+        "en": "Removes accents and replaces spaces with '_'.\n"
+              "Type any characters (or space) you want to keep intact\n"
+              "into the exception field below.",
+    },
+    "accent_exclude_label": {"hu": "Kivételek (megtartandó karakterek):", "en": "Exceptions (characters to keep):"},
+
     "custom_replace_title": {"hu": "Egyéni karaktercserék", "en": "Custom character replacements"},
     "custom_replace_desc": {
         "hu": "Add meg, mely karaktert (vagy szövegrészt) mire cseréljen le\n"
-              "a program az ékezetmentesítés után. Pl.: '&' -> 'es'",
+              "a program. Pl.: '&' -> 'es'",
         "en": "Specify which character (or text) should be replaced\n"
-              "with what, after accents are removed. E.g.: '&' -> 'and'",
+              "with what. E.g.: '&' -> 'and'",
     },
     "col_from": {"hu": "Erről", "en": "From"},
     "col_to": {"hu": "Erre", "en": "To"},
@@ -99,7 +111,7 @@ TRANSLATIONS = {
     },
     "position_input_label": {"hu": "Pozíció(k):", "en": "Position(s):"},
     "apply_button": {"hu": "Alkalmaz", "en": "Apply"},
-    "clear_button": {"hu": "Törlés", "en": "Clear"},
+    "clear_button": {"hu": "Törlés / Kikapcsolás", "en": "Clear / Disable"},
     "position_current_label": {
         "hu": "Jelenleg alkalmazott pozíciók: {lista}",
         "en": "Currently applied positions: {lista}",
@@ -120,13 +132,44 @@ TRANSLATIONS = {
     "mode_before": {"hu": "Elé", "en": "Before"},
     "mode_after": {"hu": "Utána", "en": "After"},
 
+    "autonumber_title": {
+        "hu": "Automatikus számozás",
+        "en": "Auto-numbering",
+    },
+    "autonumber_desc": {
+        "hu": "A fájlok nevét lecseréli egy növekvő sorszámra (1, 2, 3...).\n"
+              "Ha elő- vagy utótagot adsz meg, a szám elé/mögé illeszti őket.",
+        "en": "Replaces filenames with sequential numbers (1, 2, 3...).\n"
+              "If prefix or suffix is defined, they will be attached.",
+    },
+    "autonumber_enable": {
+        "hu": "Automatikus számozás bekapcsolása",
+        "en": "Enable auto-numbering",
+    },
+    "autonumber_prefix": {
+        "hu": "Előtag (szám elé):",
+        "en": "Prefix (before number):",
+    },
+    "autonumber_suffix": {
+        "hu": "Utótag (szám után):",
+        "en": "Suffix (after number):",
+    },
+    "autonumber_start": {
+        "hu": "Kezdősorszám:",
+        "en": "Start number:",
+    },
+    "autonumber_digits": {
+        "hu": "Min. számjegyek (pl. 2 -> 01, 02):",
+        "en": "Min. digits (e.g. 2 -> 01, 02):",
+    },
+
     "scope_selected": {
         "hu": "A módosítás csak a kijelölt {n} elemre lesz alkalmazva.",
         "en": "The change will only apply to the {n} selected items.",
     },
     "scope_all": {
-        "hu": "Nincs kijelölés — a módosítás mind a(z) {n} elemre lesz alkalmazva.",
-        "en": "Nothing selected — the change will apply to all {n} items.",
+        "hu": "Nincs kijelölés (vagy teljes a kijelölés) — a módosítás mind a(z) {n} elemre lesz alkalmazva.",
+        "en": "Nothing selected (or all selected) — the change will apply to all {n} items.",
     },
 
     "help_title": {"hu": "Súgó", "en": "Help"},
@@ -135,50 +178,34 @@ TRANSLATIONS = {
             "Használati útmutató\n"
             "────────────────────\n\n"
             "1. Kattints a 'Fájlok hozzáadása...' vagy 'Mappa hozzáadása...'\n"
-            "   gombra, hogy elemeket tölts be a listába.\n\n"
-            "2. A táblázatban azonnal látod az eredeti és az új\n"
-            "   (ékezetmentesített) nevet.\n\n"
-            "3. A Beállítások menüben megadhatod az egyéni karaktercseréket,\n"
-            "   a pozíció szerinti karaktertörlést, illetve karakterek beszúrását is.\n"
-            "   Tipp: Beszúrásnál hagyd üresen a pozíciót, ha a legelső karakter\n"
-            "   elé vagy az utolsó karakter után szeretnél beszúrni!\n\n"
-            "4. A szóközök mindig alulvonásra (_) cserélődnek.\n\n"
-            "5. Ha megvagy az előnézettel, kattints a 'Kötegelt\n"
-            "   átnevezés végrehajtása' gombra. A program\n"
-            "   megerősítést kér, mielőtt bármit is átnevez.\n\n"
-            "6. Ha meggondoltad magad, a 'Visszaállítás (undo)' gombbal\n"
-            "   visszaállíthatod a legutóbb végrehajtott átnevezést\n"
-            "   (akár több lépésben, ha egymás után többször neveztél át).\n\n"
-            "7. Ha a fő táblázatban kijelölsz egy vagy több elemet, mielőtt\n"
-            "   egy beállításon módosítasz, a változtatás csak a kijelölt\n"
-            "   elemekre lesz érvényes. Ha nincs kijelölés, mindenkire\n"
-            "   vonatkozik. A kijelölés crt+egér bal, shift+egér bal, crt+a.\n\n"
-            "8. A nyelv a Beállítások > Nyelv menüben váltható."
+            "   gombra elemek betöltéséhez.\n\n"
+            "2. A táblázatban azonnal látod az eredeti és az új nevet.\n\n"
+            "3. Ékezetmentesítés (Beállítások > Ékezetmentesítés):\n"
+            "   - Eltávolítja az ékezeteket és a szóközöket '_' jelekre cseréli.\n"
+            "   - Megadhatsz kivétel karaktereket is.\n\n"
+            "4. Automatikus számozás (Beállítások > Automatikus számozás):\n"
+            "   - Sorszámozhatod a fájlokat (1, 2, 3...) opcionális elő- és utótaggal.\n\n"
+            "5. A Beállítások menüben beállíthatsz egyéni karaktercseréket,\n"
+            "   valamint pozíció szerinti törlést és beszúrást is.\n\n"
+            "6. A 'Kötegelt átnevezés végrehajtása' gombra kattintva futtatható az átnevezés.\n\n"
+            "7. A 'Visszaállítás (undo)' gombbal visszavonhatod a legutóbbi műveletet.\n\n"
+            "8. A nyelv a Beállítások > Nyelv menüben változtatható meg."
         ),
         "en": (
             "How to use\n"
             "────────────────────\n\n"
-            "1. Click 'Add files...' or 'Add folder...' to load\n"
-            "   items into the list.\n\n"
-            "2. The table immediately shows the original and the\n"
-            "   new (accent-free) name.\n\n"
-            "3. In the Settings menu, you can define custom character\n"
-            "   replacements, position-based deletion, and position-based insertions.\n"
-            "   Tip: For insertion, leave the position empty to insert at the\n"
-            "   very beginning or at the very end of the name!\n\n"
-            "4. Spaces are always replaced with underscores (_).\n\n"
-            "5. Once you're happy with the preview, click 'Run\n"
-            "   batch rename'. The program will ask for confirmation\n"
-            "   before renaming anything.\n\n"
-            "6. If you change your mind, use 'Undo last rename' to\n"
-            "   revert the most recent renaming operation (you can\n"
-            "   undo several times if you renamed more than once).\n\n"
-            "7. If you select one or more items in the main table before\n"
-            "   changing settings, the change will only\n"
-            "   apply to the selected items. If nothing is selected, it\n"
-            "   applies to all of them.\n"
-            "   Selection: Ctrl+Left Mouse, Shift+Left Mouse, Ctrl + A.\n\n"
-            "8. The language can be changed under Settings > Language."
+            "1. Click 'Add files...' or 'Add folder...' to load items into the list.\n\n"
+            "2. The table displays original and preview names immediately.\n\n"
+            "3. Accent Removal (Settings > Accent removal):\n"
+            "   - Removes accents and replaces spaces with '_'.\n"
+            "   - You can specify exceptions to keep.\n\n"
+            "4. Auto-numbering (Settings > Auto-numbering):\n"
+            "   - Number files sequentially (1, 2, 3...) with optional prefix and suffix.\n\n"
+            "5. In Settings, you can configure custom replacements, position-based\n"
+            "   deletion, and text insertion.\n\n"
+            "6. Click 'Run batch rename' to execute changes.\n\n"
+            "7. Use 'Undo last rename' to restore previous filenames.\n\n"
+            "8. Switch language via Settings > Language."
         ),
     },
 
@@ -190,18 +217,16 @@ TRANSLATIONS = {
     "about_desc": {
         "hu": (
             "Kötegelt átnevező program ékezetmentesítéshez,\n"
-            "szóköz -> alulvonás cseréhez, egyéni\n"
-            "karaktercserékhez, beszúrásokhoz, törléshez\n"
-            "és visszaállításhoz.\n\n"
-            "Verzió: 1.5  MIT License\n"
+            "egyéni karaktercserékhez, beszúrásokhoz,\n"
+            "automatikus számozáshoz és visszaállításhoz.\n\n"
+            "Verzió: 1.6  MIT License\n"
             "Copyright (c) szabiz 2026 - Soli Deo Gloria"
         ),
         "en": (
             "Batch renaming tool for removing accents,\n"
-            "replacing spaces with underscores, custom\n"
-            "replacements, insertions, position-based deletion\n"
+            "custom replacements, insertions, auto-numbering\n"
             "and undo support.\n\n"
-            "Version: 1.5 MIT License\n"
+            "Version: 1.6 MIT License\n"
             "Copyright (c) szabiz 2026 - Soli Deo Gloria"
         ),
     },
@@ -260,9 +285,9 @@ TRANSLATIONS = {
 
 
 class Ny:
-    """Egyszerű nyelvváltó segédosztály. / Simple language-switch helper."""
+    """Simple language-switch helper class."""
 
-    def __init__(self, nyelv="hu"):
+    def __init__(self, nyelv="en"):
         self.nyelv = nyelv
 
     def t(self, kulcs, **kwargs):
@@ -273,12 +298,27 @@ class Ny:
 
 
 # ======================================================================
-# Névképzési logika
+# Name Generation Logic
 # ======================================================================
-def ekezettelenit(szoveg: str) -> str:
-    """Eltávolítja az ékezeteket egy szövegből (pl. á -> a, ő -> o, ű -> u)."""
-    nfkd = unicodedata.normalize('NFKD', szoveg)
-    return ''.join(c for c in nfkd if not unicodedata.combining(c))
+def ekezettelenit_egyeni(szoveg: str, ekezet_beallitasok: dict) -> str:
+    """Removes accents and replaces spaces with '_' based on user exceptions."""
+    if not ekezet_beallitasok or not ekezet_beallitasok.get("aktiv", False):
+        return szoveg
+
+    kivetelek = set(ekezet_beallitasok.get("kivetelek", ""))
+
+    eredmeny = []
+    for c in szoveg:
+        if c in kivetelek:
+            eredmeny.append(c)
+        elif c == ' ':
+            eredmeny.append('_')
+        else:
+            nfkd = unicodedata.normalize('NFKD', c)
+            stripped = ''.join(ch for ch in nfkd if not unicodedata.combining(ch))
+            eredmeny.append(stripped)
+
+    return ''.join(eredmeny)
 
 
 def pozicio_lista_ertelmezese(szoveg: str) -> set:
@@ -308,21 +348,18 @@ def pozicio_lista_ertelmezese(szoveg: str) -> set:
 
 
 def pozicio_alapu_torles(nev: str, pozicio_halmaz) -> str:
-    """Eltávolítja a nevből az adott (1-alapú) pozíciókon lévő karaktereket."""
     if not pozicio_halmaz:
         return nev
     return ''.join(c for i, c in enumerate(nev, start=1) if i not in pozicio_halmaz)
 
 
 def pozicio_alapu_beszuras(nev: str, beszurasok) -> str:
-    """Karakterek beszúrása a névbe megadott pozíció(k)hoz vagy az elejére/végére."""
     if not beszurasok:
         return nev
-        
+
     beszurasok_kiszamolva = []
     for pos, mod, szoveg in beszurasok:
         if pos is None:
-            # Ha nincs megadva pozíció, elé = legelőre, utána = legvégére
             idx = 0 if mod == "ele" else len(nev)
         else:
             idx = max(0, min(pos - 1, len(nev)))
@@ -330,7 +367,6 @@ def pozicio_alapu_beszuras(nev: str, beszurasok) -> str:
                 idx += 1
         beszurasok_kiszamolva.append((idx, szoveg))
 
-    # Csökkenő sorrend a tolakodás (indexeltolódás) elkerülésére
     beszurasok_kiszamolva.sort(key=lambda x: x[0], reverse=True)
     for idx, szoveg in beszurasok_kiszamolva:
         nev = nev[:idx] + szoveg + nev[idx:]
@@ -340,18 +376,30 @@ def pozicio_alapu_beszuras(nev: str, beszurasok) -> str:
 _TILTOTT_KARAKTEREK = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
-def uj_nev_kepzes(eredeti_nev: str, egyeni_cserek=None, pozicio_halmaz=None, beszurasok=None) -> str:
+def uj_nev_kepzes(eredeti_nev: str, egyeni_cserek=None, pozicio_halmaz=None, beszurasok=None, szam_beallitasok=None, ekezet_beallitasok=None, sorszam=1) -> str:
     nev, kiterjesztes = os.path.splitext(eredeti_nev)
 
-    # 1. Törlés
+    # 0. Automatikus számozás ha be van kapcsolva
+    if szam_beallitasok and szam_beallitasok.get("aktiv", False):
+        kezdoszam = szam_beallitasok.get("kezdoszam", 1)
+        szamjegyek = szam_beallitasok.get("szamjegyek", 1)
+        elotag = szam_beallitasok.get("elotag", "")
+        utotag = szam_beallitasok.get("utotag", "")
+
+        aktualis_szam = (sorszam - 1) + kezdoszam
+        szam_str = str(aktualis_szam).zfill(szamjegyek)
+        nev = f"{elotag}{szam_str}{utotag}"
+
+    # 1. Törlés pozíció szerint
     nev = pozicio_alapu_torles(nev, pozicio_halmaz)
-    # 2. Beszúrás
+    # 2. Beszúrás pozíció szerint
     nev = pozicio_alapu_beszuras(nev, beszurasok)
 
-    # 3. Ékezetmentesítés és cserék
-    nev = ekezettelenit(nev)
-    kiterjesztes = ekezettelenit(kiterjesztes)
+    # 3. Ékezetmentesítés (csak ha külön be van kapcsolva)
+    nev = ekezettelenit_egyeni(nev, ekezet_beallitasok)
+    kiterjesztes = ekezettelenit_egyeni(kiterjesztes, ekezet_beallitasok)
 
+    # 4. Egyéni cserék
     if egyeni_cserek:
         for honnan, hova in egyeni_cserek:
             if honnan == "":
@@ -362,21 +410,20 @@ def uj_nev_kepzes(eredeti_nev: str, egyeni_cserek=None, pozicio_halmaz=None, bes
     nev = _TILTOTT_KARAKTEREK.sub('_', nev)
     kiterjesztes = _TILTOTT_KARAKTEREK.sub('_', kiterjesztes)
 
-    nev = nev.replace(' ', '_')
-    nev = re.sub(r'_+', '_', nev)
-    nev = nev.strip('_')
+    # Eltávolítja a felesleges pontot és szóközt a név végéről, de az alulvonás (_) megmarad!
     nev = nev.rstrip('. ')
 
     return nev + kiterjesztes
 
 
 # ======================================================================
-# Alkalmazás
+# Application
 # ======================================================================
 class AtnevezoApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.ny = Ny("hu")
+        # Induljon angol nyelven alapértelmezetten
+        self.ny = Ny("en")
 
         self.root.geometry("900x580")
         self.root.minsize(700, 420)
@@ -384,7 +431,18 @@ class AtnevezoApp:
         self.elemek = []
         self.egyeni_cserek = []
         self.pozicio_string = ""
-        self.pozicio_beszurasok = []  # Lista (pos, mód, szöveg) elemekkel
+        self.pozicio_beszurasok = []
+        self.ekezet_beallitasok = {
+            "aktiv": False,
+            "kivetelek": "",
+        }
+        self.szam_beallitasok = {
+            "aktiv": False,
+            "elotag": "",
+            "utotag": "",
+            "kezdoszam": 1,
+            "szamjegyek": 1,
+        }
         self.atnevezesi_naplo = []
 
         self._forditando_widgetek = []
@@ -422,14 +480,21 @@ class AtnevezoApp:
         self.root.config(menu=menusav)
 
         beallitasok_menu = tk.Menu(menusav, tearoff=0)
+
+        beallitasok_menu.add_command(command=self.ekezetmentesites_ablak_megnyitasa)
+        self._forditando_menuk.append((beallitasok_menu, 0, "menu_accent_removal"))
+
         beallitasok_menu.add_command(command=self.karaktercsere_ablak_megnyitasa)
-        self._forditando_menuk.append((beallitasok_menu, 0, "menu_custom_replacements"))
+        self._forditando_menuk.append((beallitasok_menu, 1, "menu_custom_replacements"))
 
         beallitasok_menu.add_command(command=self.pozicio_torles_ablak_megnyitasa)
-        self._forditando_menuk.append((beallitasok_menu, 1, "menu_position_delete"))
+        self._forditando_menuk.append((beallitasok_menu, 2, "menu_position_delete"))
 
         beallitasok_menu.add_command(command=self.pozicio_beszuras_ablak_megnyitasa)
-        self._forditando_menuk.append((beallitasok_menu, 2, "menu_position_insert"))
+        self._forditando_menuk.append((beallitasok_menu, 3, "menu_position_insert"))
+
+        beallitasok_menu.add_command(command=self.szamozas_ablak_megnyitasa)
+        self._forditando_menuk.append((beallitasok_menu, 4, "menu_autonumber"))
 
         nyelv_menu = tk.Menu(beallitasok_menu, tearoff=0)
         nyelv_menu.add_command(command=lambda: self.nyelv_valtasa("hu"))
@@ -438,7 +503,7 @@ class AtnevezoApp:
         self._forditando_menuk.append((nyelv_menu, 1, "lang_en"))
 
         beallitasok_menu.add_cascade(menu=nyelv_menu)
-        self._forditando_menuk.append((beallitasok_menu, 3, "menu_language"))
+        self._forditando_menuk.append((beallitasok_menu, 5, "menu_language"))
 
         menusav.add_cascade(menu=beallitasok_menu)
         self._forditando_menuk.append((menusav, 0, "menu_settings"))
@@ -501,6 +566,7 @@ class AtnevezoApp:
             if not self.fa.identify_row(ev.y):
                 self.fa.selection_remove(self.fa.selection())
         self.fa.bind("<Button-1>", _bg_click, add="+")
+        self.fa.bind("<<TreeviewSelect>>", lambda e: self._allapotsor_frissitese())
 
         self.allapot_szoveg = tk.StringVar(value="")
         ttk.Label(self.root, textvariable=self.allapot_szoveg, anchor="w").pack(
@@ -555,36 +621,75 @@ class AtnevezoApp:
             eredeti_nev = os.path.basename(ut.rstrip(os.sep))
             if not eredeti_nev:
                 continue
-            uj_nev = uj_nev_kepzes(eredeti_nev, self.egyeni_cserek, self._pozicio_halmaz(), self.pozicio_beszurasok)
             self.elemek.append({
                 "eredeti_ut": ut,
                 "eredeti_nev": eredeti_nev,
-                "uj_nev": uj_nev,
+                # Alapból az eredeti névvel egyezzen meg, nehogy üresen
+                # jelenjen meg, ha épp más elemekre van korlátozva a hatókör
+                # (pl. mert közben másik elem van kijelölve).
+                "uj_nev": eredeti_nev,
             })
-        self._frissitsd_tablat()
+        self._elonezet_frissitese()
 
     def _pozicio_halmaz(self):
         return pozicio_lista_ertelmezese(self.pozicio_string)
 
-    def _celzott_indexek(self):
-        kijelolt = self.fa.selection()
-        if kijelolt:
-            return [int(iid) for iid in kijelolt]
-        return list(range(len(self.elemek)))
+    def _hatokor_lekerdezese(self):
+        """
+        Meghatározza, hogy a következő módosítás mely elemekre vonatkozzon.
 
-    def _hatokor_szoveg(self):
-        kijelolt = self.fa.selection()
-        if kijelolt:
-            return self.ny.t("scope_selected", n=len(kijelolt))
-        return self.ny.t("scope_all", n=len(self.elemek))
+        - Ha nincs kijelölés, vagy a kijelölés lefedi az összes betöltött
+          elemet (teljes kijelölés), akkor a módosítás mindegyik elemre
+          vonatkozik.
+        - Ha csak egy részhalmaz van kijelölve, akkor kizárólag azokra az
+          elemekre vonatkozik a módosítás, a többi változatlan marad.
 
-    def _elonezet_frissitese(self):
-        for idx in self._celzott_indexek():
-            if 0 <= idx < len(self.elemek):
-                elem = self.elemek[idx]
-                elem["uj_nev"] = uj_nev_kepzes(
-                    elem["eredeti_nev"], self.egyeni_cserek, self._pozicio_halmaz(), self.pozicio_beszurasok
-                )
+        Visszatér: (reszleges: bool, erintett_indexek: list[int])
+        Az erintett_indexek mindig a self.elemek listára vonatkozó,
+        növekvő sorrendbe rendezett indexek listája.
+        """
+        darabszam = len(self.elemek)
+        if darabszam == 0:
+            return False, []
+
+        nyers_kijelolt = self.fa.selection()
+        ervenyes_kijelolt = sorted(
+            {int(iid) for iid in nyers_kijelolt if int(iid) < darabszam}
+        )
+
+        if not ervenyes_kijelolt or len(ervenyes_kijelolt) >= darabszam:
+            # Nincs kijelölés vagy teljes kijelölés -> minden elem érintett
+            return False, list(range(darabszam))
+
+        return True, ervenyes_kijelolt
+
+    def _elonezet_frissitese(self, mind=False):
+        """
+        Újraszámolja az elemek előnézeti (uj_nev) nevét.
+
+        mind=False (alapértelmezett): a hatókör a kijelöléstől függ -
+            ha nincs kijelölés vagy teljes a kijelölés, minden elem
+            frissül; ha részleges a kijelölés, csak a kijelölt elemek.
+        mind=True: mindig minden elemet újraszámol, a kijelöléstől
+            függetlenül. Ezt kell használni olyan műveletek után, amelyek
+            ténylegesen módosítják a fájlrendszert (átnevezés, undo),
+            hogy az adatok biztosan konzisztensek maradjanak.
+        """
+        if mind:
+            erintett_indexek = list(range(len(self.elemek)))
+        else:
+            _, erintett_indexek = self._hatokor_lekerdezese()
+        for sorszam, idx in enumerate(erintett_indexek, start=1):
+            elem = self.elemek[idx]
+            elem["uj_nev"] = uj_nev_kepzes(
+                elem["eredeti_nev"],
+                self.egyeni_cserek,
+                self._pozicio_halmaz(),
+                self.pozicio_beszurasok,
+                self.szam_beallitasok,
+                self.ekezet_beallitasok,
+                sorszam=sorszam
+            )
         self._frissitsd_tablat()
 
     def kijelolt_torlese(self):
@@ -595,7 +700,10 @@ class AtnevezoApp:
             self.elemek[int(iid)]["eredeti_ut"] for iid in kijelolt_indexek
         }
         self.elemek = [e for e in self.elemek if e["eredeti_ut"] not in torolt_utvonalak]
-        self._frissitsd_tablat()
+        # A törölt elemek kijelölése már nem értelmezhető, ezért töröljük,
+        # nehogy véletlenül más (megmaradt) elemekre értelmeződjön a hatókör.
+        self.fa.selection_remove(self.fa.selection())
+        self._elonezet_frissitese()
 
     def lista_uritese(self):
         self.elemek = []
@@ -618,15 +726,66 @@ class AtnevezoApp:
         if ervenyes_kijelolt:
             self.fa.selection_set(ervenyes_kijelolt)
 
+        self._allapotsor_frissitese()
+
+    def _allapotsor_frissitese(self):
         db = len(self.elemek)
         if db == 0:
             self.allapot_szoveg.set(self.ny.t("status_no_items"))
+            return
+
+        valtozo_db = sum(1 for e in self.elemek if e["eredeti_nev"] != e["uj_nev"])
+        szoveg = self.ny.t("status_loaded", db=db, valtozo=valtozo_db)
+
+        reszleges, erintett_indexek = self._hatokor_lekerdezese()
+        if reszleges:
+            szoveg += "\n" + self.ny.t("scope_selected", n=len(erintett_indexek))
         else:
-            valtozo_db = sum(1 for e in self.elemek if e["eredeti_nev"] != e["uj_nev"])
-            self.allapot_szoveg.set(self.ny.t("status_loaded", db=db, valtozo=valtozo_db))
+            szoveg += "\n" + self.ny.t("scope_all", n=db)
+        self.allapot_szoveg.set(szoveg)
 
     def _frissitsd_undo_gombot(self):
         self.undo_gomb.config(state=("normal" if self.atnevezesi_naplo else "disabled"))
+
+    # ------------------------------------------------------------------
+    # Ékezetmentesítés beállító ablaka
+    # ------------------------------------------------------------------
+    def ekezetmentesites_ablak_megnyitasa(self):
+        ablak = tk.Toplevel(self.root)
+        ablak.title(self.ny.t("accent_title"))
+        ablak.geometry("460x280")
+        ablak.transient(self.root)
+        ablak.grab_set()
+
+        ttk.Label(
+            ablak, text=self.ny.t("accent_desc"), justify="left"
+        ).pack(fill=tk.X, padx=10, pady=(10, 10))
+
+        bevitel_keret = ttk.Frame(ablak)
+        bevitel_keret.pack(fill=tk.X, padx=10, pady=5)
+
+        ttk.Label(bevitel_keret, text=self.ny.t("accent_exclude_label")).pack(anchor="w", pady=(0, 4))
+        kivetele_mezo = ttk.Entry(bevitel_keret, width=35)
+        kivetele_mezo.insert(0, self.ekezet_beallitasok["kivetelek"])
+        kivetele_mezo.pack(fill=tk.X, expand=True)
+
+        def alkalmaz():
+            self.ekezet_beallitasok = {
+                "aktiv": True,
+                "kivetelek": kivetele_mezo.get()
+            }
+            self._elonezet_frissitese()
+
+        def kikapcsol():
+            self.ekezet_beallitasok["aktiv"] = False
+            self._elonezet_frissitese()
+
+        also_gombsor = ttk.Frame(ablak)
+        also_gombsor.pack(fill=tk.X, padx=10, pady=(20, 10))
+
+        ttk.Button(also_gombsor, text=self.ny.t("clear_button"), command=kikapcsol).pack(side=tk.LEFT)
+        ttk.Button(also_gombsor, text=self.ny.t("apply_button"), command=alkalmaz).pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy).pack(side=tk.RIGHT)
 
     # ------------------------------------------------------------------
     # Egyéni karaktercserék beállító ablaka
@@ -641,11 +800,6 @@ class AtnevezoApp:
         ttk.Label(
             ablak, text=self.ny.t("custom_replace_desc"), justify="left"
         ).pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        ttk.Label(
-            ablak, text=self._hatokor_szoveg(), justify="left",
-            font=("TkDefaultFont", 9, "italic")
-        ).pack(fill=tk.X, padx=10, pady=(0, 5))
 
         lista_keret = ttk.Frame(ablak)
         lista_keret.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -674,13 +828,11 @@ class AtnevezoApp:
         bevitel_keret = ttk.Frame(ablak)
         bevitel_keret.pack(fill=tk.X, padx=10, pady=5)
 
-        cimke_honnan = ttk.Label(bevitel_keret, text=self.ny.t("from_label"))
-        cimke_honnan.grid(row=0, column=0, padx=(0, 4))
+        ttk.Label(bevitel_keret, text=self.ny.t("from_label")).grid(row=0, column=0, padx=(0, 4))
         honnan_mezo = ttk.Entry(bevitel_keret, width=12)
         honnan_mezo.grid(row=0, column=1, padx=(0, 10))
 
-        cimke_hova = ttk.Label(bevitel_keret, text=self.ny.t("to_label"))
-        cimke_hova.grid(row=0, column=2, padx=(0, 4))
+        ttk.Label(bevitel_keret, text=self.ny.t("to_label")).grid(row=0, column=2, padx=(0, 4))
         hova_mezo = ttk.Entry(bevitel_keret, width=12)
         hova_mezo.grid(row=0, column=3, padx=(0, 10))
 
@@ -700,8 +852,7 @@ class AtnevezoApp:
             lista_ujratoltese()
             self._elonezet_frissitese()
 
-        hozzaad_gomb = ttk.Button(bevitel_keret, text=self.ny.t("add_button"), command=csere_hozzaadasa)
-        hozzaad_gomb.grid(row=0, column=4, padx=(4, 0))
+        ttk.Button(bevitel_keret, text=self.ny.t("add_button"), command=csere_hozzaadasa).grid(row=0, column=4, padx=(4, 0))
 
         def kijelolt_csere_torlese():
             kijelolt = fa.selection()
@@ -715,14 +866,12 @@ class AtnevezoApp:
         also_gombsor = ttk.Frame(ablak)
         also_gombsor.pack(fill=tk.X, padx=10, pady=(0, 10))
 
-        torol_gomb = ttk.Button(
+        ttk.Button(
             also_gombsor, text=self.ny.t("delete_selected_replacement"),
             command=kijelolt_csere_torlese
-        )
-        torol_gomb.pack(side=tk.LEFT)
+        ).pack(side=tk.LEFT)
 
-        bezar_gomb = ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy)
-        bezar_gomb.pack(side=tk.RIGHT)
+        ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy).pack(side=tk.RIGHT)
 
     # ------------------------------------------------------------------
     # Pozíció szerinti karaktertörlés beállító ablaka
@@ -730,7 +879,7 @@ class AtnevezoApp:
     def pozicio_torles_ablak_megnyitasa(self):
         ablak = tk.Toplevel(self.root)
         ablak.title(self.ny.t("position_delete_title"))
-        ablak.geometry("460x400")
+        ablak.geometry("460x360")
         ablak.transient(self.root)
         ablak.grab_set()
 
@@ -738,16 +887,10 @@ class AtnevezoApp:
             ablak, text=self.ny.t("position_delete_desc"), justify="left"
         ).pack(fill=tk.X, padx=10, pady=(10, 10))
 
-        ttk.Label(
-            ablak, text=self._hatokor_szoveg(), justify="left",
-            font=("TkDefaultFont", 9, "italic")
-        ).pack(fill=tk.X, padx=10, pady=(0, 10))
-
         bevitel_keret = ttk.Frame(ablak)
         bevitel_keret.pack(fill=tk.X, padx=10, pady=5)
 
-        cimke = ttk.Label(bevitel_keret, text=self.ny.t("position_input_label"))
-        cimke.pack(side=tk.LEFT, padx=(0, 8))
+        ttk.Label(bevitel_keret, text=self.ny.t("position_input_label")).pack(side=tk.LEFT, padx=(0, 8))
 
         mezo = ttk.Entry(bevitel_keret, width=20)
         mezo.insert(0, self.pozicio_string)
@@ -796,18 +939,13 @@ class AtnevezoApp:
     def pozicio_beszuras_ablak_megnyitasa(self):
         ablak = tk.Toplevel(self.root)
         ablak.title(self.ny.t("insert_title"))
-        ablak.geometry("560x440")
+        ablak.geometry("560x400")
         ablak.transient(self.root)
         ablak.grab_set()
 
         ttk.Label(
             ablak, text=self.ny.t("insert_desc"), justify="left"
         ).pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        ttk.Label(
-            ablak, text=self._hatokor_szoveg(), justify="left",
-            font=("TkDefaultFont", 9, "italic")
-        ).pack(fill=tk.X, padx=10, pady=(0, 5))
 
         lista_keret = ttk.Frame(ablak)
         lista_keret.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -879,8 +1017,7 @@ class AtnevezoApp:
             lista_ujratoltese()
             self._elonezet_frissitese()
 
-        hozzaad_gomb = ttk.Button(bevitel_keret, text=self.ny.t("add_button"), command=beszuras_hozzaadasa)
-        hozzaad_gomb.grid(row=0, column=6, padx=(4, 0))
+        ttk.Button(bevitel_keret, text=self.ny.t("add_button"), command=beszuras_hozzaadasa).grid(row=0, column=6, padx=(4, 0))
 
         def kijelolt_torlese():
             kijelolt = fa.selection()
@@ -894,15 +1031,83 @@ class AtnevezoApp:
         also_gombsor = ttk.Frame(ablak)
         also_gombsor.pack(fill=tk.X, padx=10, pady=(0, 10))
 
-        torol_gomb = ttk.Button(
+        ttk.Button(
             also_gombsor, text=self.ny.t("delete_selected_replacement"),
             command=kijelolt_torlese
-        )
-        torol_gomb.pack(side=tk.LEFT)
+        ).pack(side=tk.LEFT)
 
-        bezar_gomb = ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy)
-        bezar_gomb.pack(side=tk.RIGHT)
+        ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy).pack(side=tk.RIGHT)
 
+    # ------------------------------------------------------------------
+    # Automatikus számozás beállító ablaka
+    # ------------------------------------------------------------------
+    def szamozas_ablak_megnyitasa(self):
+        ablak = tk.Toplevel(self.root)
+        ablak.title(self.ny.t("autonumber_title"))
+        ablak.geometry("450x280")
+        ablak.transient(self.root)
+        ablak.grab_set()
+
+        ttk.Label(
+            ablak, text=self.ny.t("autonumber_desc"), justify="left"
+        ).pack(fill=tk.X, padx=10, pady=(10, 10))
+
+        form_keret = ttk.Frame(ablak)
+        form_keret.pack(fill=tk.X, padx=10, pady=5)
+
+        ttk.Label(form_keret, text=self.ny.t("autonumber_prefix")).grid(row=0, column=0, sticky="w", pady=4)
+        elotag_mezo = ttk.Entry(form_keret, width=22)
+        elotag_mezo.insert(0, self.szam_beallitasok["elotag"])
+        elotag_mezo.grid(row=0, column=1, sticky="w", padx=(10, 0), pady=4)
+
+        ttk.Label(form_keret, text=self.ny.t("autonumber_suffix")).grid(row=1, column=0, sticky="w", pady=4)
+        utotag_mezo = ttk.Entry(form_keret, width=22)
+        utotag_mezo.insert(0, self.szam_beallitasok["utotag"])
+        utotag_mezo.grid(row=1, column=1, sticky="w", padx=(10, 0), pady=4)
+
+        ttk.Label(form_keret, text=self.ny.t("autonumber_start")).grid(row=2, column=0, sticky="w", pady=4)
+        kezdoszam_mezo = ttk.Entry(form_keret, width=10)
+        kezdoszam_mezo.insert(0, str(self.szam_beallitasok["kezdoszam"]))
+        kezdoszam_mezo.grid(row=2, column=1, sticky="w", padx=(10, 0), pady=4)
+
+        ttk.Label(form_keret, text=self.ny.t("autonumber_digits")).grid(row=3, column=0, sticky="w", pady=4)
+        szamjegyek_mezo = ttk.Entry(form_keret, width=10)
+        szamjegyek_mezo.insert(0, str(self.szam_beallitasok["szamjegyek"]))
+        szamjegyek_mezo.grid(row=3, column=1, sticky="w", padx=(10, 0), pady=4)
+
+        def alkalmaz():
+            try:
+                k_szam = int(kezdoszam_mezo.get().strip())
+                sz_jegy = int(szamjegyek_mezo.get().strip())
+                if k_szam < 0 or sz_jegy < 1:
+                    raise ValueError
+            except ValueError:
+                messagebox.showwarning(
+                    self.ny.t("error_title"),
+                    "A kezdősorszám és a számjegyek száma érvényes pozitív szám kell legyen!",
+                    parent=ablak
+                )
+                return
+
+            self.szam_beallitasok = {
+                "aktiv": True,
+                "elotag": elotag_mezo.get(),
+                "utotag": utotag_mezo.get(),
+                "kezdoszam": k_szam,
+                "szamjegyek": sz_jegy,
+            }
+            self._elonezet_frissitese()
+
+        def kikapcsol():
+            self.szam_beallitasok["aktiv"] = False
+            self._elonezet_frissitese()
+
+        also_gombsor = ttk.Frame(ablak)
+        also_gombsor.pack(fill=tk.X, padx=10, pady=(15, 10))
+
+        ttk.Button(also_gombsor, text=self.ny.t("clear_button"), command=kikapcsol).pack(side=tk.LEFT)
+        ttk.Button(also_gombsor, text=self.ny.t("apply_button"), command=alkalmaz).pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Button(also_gombsor, text=self.ny.t("close"), command=ablak.destroy).pack(side=tk.RIGHT)
 
     # ------------------------------------------------------------------
     # Súgó és Névjegy ablakok
@@ -910,7 +1115,7 @@ class AtnevezoApp:
     def sugo_ablak_megnyitasa(self):
         ablak = tk.Toplevel(self.root)
         ablak.title(self.ny.t("help_title"))
-        ablak.geometry("500x420")
+        ablak.geometry("520x460")
         ablak.transient(self.root)
         ablak.grab_set()
 
@@ -986,7 +1191,7 @@ class AtnevezoApp:
         if koteg_naplo:
             self.atnevezesi_naplo.append(koteg_naplo)
 
-        self._frissitsd_tablat()
+        self._elonezet_frissitese(mind=True)
         self._frissitsd_undo_gombot()
 
         uzenet = self.ny.t("rename_done_msg", n=sikeres)
@@ -1025,13 +1230,12 @@ class AtnevezoApp:
                     if elem["eredeti_ut"] == uj_ut:
                         elem["eredeti_ut"] = regi_ut
                         elem["eredeti_nev"] = os.path.basename(regi_ut)
-                        elem["uj_nev"] = uj_nev_kepzes(elem["eredeti_nev"], self.egyeni_cserek, self._pozicio_halmaz(), self.pozicio_beszurasok)
                         break
                 sikeres += 1
             except OSError as hiba:
                 hibak.append(f"{os.path.basename(uj_ut)}: {hiba}")
 
-        self._frissitsd_tablat()
+        self._elonezet_frissitese(mind=True)
         self._frissitsd_undo_gombot()
 
         uzenet = self.ny.t("undo_done_msg", n=sikeres)

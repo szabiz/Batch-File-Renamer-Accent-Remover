@@ -42,19 +42,19 @@ The main interface provides all renaming options in one place. You can load file
 - UI adjustments for easier file handling.
 ### New in v1.6
 ### Dedicated Accent Removal & Exception Handling
-Accent removal is no longer executed automatically; it is now managed via its own dedicated menu and dialog window[cite: 4]:
-* **Dedicated Menu Option:** Accessible under **Settings > Accent removal...** (`Beállítások > Ékezetmentesítés...`)[cite: 4].
-* **Custom Character Exceptions:** Define specific characters (or spaces) that must be preserved without modification[cite: 4].
-* **Accent & Space Processing:** Strips diacritics and replaces standard spaces with underscores (`_`)[cite: 4].
-* **Flexible Toggle Controls:** Click **Apply** to save settings and enable accent removal (`"aktiv": True`), or **Clear / Disable** to turn it off (`"aktiv": False`)[cite: 4].
+Accent removal is no longer executed automatically; it is now managed via its own dedicated menu and dialog window.
+* **Dedicated Menu Option:** Accessible under **Settings > Accent removal...**
+* **Custom Character Exceptions:** Define specific characters (or spaces) that must be preserved without modification.
+* **Accent & Space Processing:** Strips diacritics and replaces standard spaces with underscores (`_`).
+* **Flexible Toggle Controls:** Click **Apply** to save settings and enable accent removal (`"aktiv": True`), or **Clear / Disable** to turn it off (`"aktiv": False`).
 
 ### Auto-Numbering Window
-A dedicated dialog for configuring automatic sequential file numbering[cite: 4]:
-* **Customization Options:** Set custom prefix, suffix, start index, and digit padding[cite: 4].
+A dedicated dialog for configuring automatic sequential file numbering:
+* **Customization Options:** Set custom prefix, suffix, start index, and digit padding.
 * **Smart Action Buttons:**
-  * **Apply:** Saves configuration and activates auto-numbering (`"aktiv": True`)[cite: 4].
-  * **Clear / Disable:** Deactivates auto-numbering (`"aktiv": False`)[cite: 4].
-* **Optimized UI:** Compact and clean layout (`450x280`) designed for an efficient user experience[cite: 4].
+  * **Apply:** Saves configuration and activates auto-numbering (`"aktiv": True`).
+  * **Clear / Disable:** Deactivates auto-numbering (`"aktiv": False`).
+* **Optimized UI:** Compact and clean layout (`450x280`) designed for an efficient user experience.
 
 ---
 

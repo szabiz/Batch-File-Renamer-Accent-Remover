@@ -19,3 +19,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+------------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------------
+This software uses only the Python Standard Library (os, re, unicodedata,
+tkinter, and its ttk / filedialog / messagebox submodules). No third-party
+packages, external dependencies, or code copied from other projects are
+included. The Python Standard Library is distributed under the Python
+Software Foundation License (PSF License), a permissive license fully
+compatible with MIT-licensed distribution; it imposes no copyleft or
+licensing obligations on software built with it.

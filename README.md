@@ -19,12 +19,6 @@ No installation is required when using the released executable.
 
 ---
 
-# Main Window
-
-<p align="center">
-    <img src="Atnevezo1.jpg" width="950">
-</p>
-
 The main interface provides all renaming options in one place. You can load files or folders, configure rename rules, preview the results, and execute batch operations safely.
 
 ---
@@ -42,9 +36,25 @@ The main interface provides all renaming options in one place. You can load file
 - Supports both files and folders
 - No external dependencies
 - Portable executable
+
 ### New in v1.5
 - Added support for prefix/suffix text insertion when position field is empty.
 - UI adjustments for easier file handling.
+### New in v1.6
+### Dedicated Accent Removal & Exception Handling
+Accent removal is no longer executed automatically; it is now managed via its own dedicated menu and dialog window[cite: 4]:
+* **Dedicated Menu Option:** Accessible under **Settings > Accent removal...** (`Beállítások > Ékezetmentesítés...`)[cite: 4].
+* **Custom Character Exceptions:** Define specific characters (or spaces) that must be preserved without modification[cite: 4].
+* **Accent & Space Processing:** Strips diacritics and replaces standard spaces with underscores (`_`)[cite: 4].
+* **Flexible Toggle Controls:** Click **Apply** to save settings and enable accent removal (`"aktiv": True`), or **Clear / Disable** to turn it off (`"aktiv": False`)[cite: 4].
+
+### Auto-Numbering Window
+A dedicated dialog for configuring automatic sequential file numbering[cite: 4]:
+* **Customization Options:** Set custom prefix, suffix, start index, and digit padding[cite: 4].
+* **Smart Action Buttons:**
+  * **Apply:** Saves configuration and activates auto-numbering (`"aktiv": True`)[cite: 4].
+  * **Clear / Disable:** Deactivates auto-numbering (`"aktiv": False`)[cite: 4].
+* **Optimized UI:** Compact and clean layout (`450x280`) designed for an efficient user experience[cite: 4].
 
 ---
 
@@ -65,6 +75,12 @@ The file list supports familiar Windows selection methods.
 - **Esc** – Clear the current selection
 
 ---
+
+# Main Window
+
+<p align="center">
+    <img src="Atnevezo1.jpg" width="950">
+</p>
 
 # Preview
 
